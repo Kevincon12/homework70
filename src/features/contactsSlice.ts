@@ -33,7 +33,7 @@ export const fetchContacts = createAsyncThunk<Contact[]>(
             ...response.data[key],
         }))
     }
-)
+);
 
 export const fetchContactById = createAsyncThunk<Contact, string>(
     'contacts/fetchContactById',
@@ -42,6 +42,19 @@ export const fetchContactById = createAsyncThunk<Contact, string>(
         return {
             id,
             ...response.data,
+        }
+    }
+);
+
+export const saveContact = createAsyncThunk(
+    'contacts/saveContact',
+    async (contact: { id?: string; name: string; phone: string; email: string; photo: string }) => {
+        if (contact.id) {
+            const response = await axios.put(`${BASE_URL}/contacts/${contact.id}.json`, contact);
+            return { ...contact };
+        } else {
+            const response = await axios.post(`${BASE_URL}/contacts.json`, contact);
+            return { id: response.data.name, ...contact };
         }
     }
 )
@@ -74,6 +87,21 @@ const contactsSlice = createSlice({
                 state.selectedContact = action.payload
             })
             .addCase(fetchContactById.rejected, (state) => {
+                state.loading = false
+            })
+            .addCase(saveContact.pending, (state) => {
+                state.loading = true
+            })
+            .addCase(saveContact.fulfilled, (state, action: PayloadAction<Contact>) => {
+                state.loading = false
+                const index = state.items.findIndex(c => c.id === action.payload.id)
+                if (index >= 0) {
+                    state.items[index] = action.payload
+                } else {
+                    state.items.push(action.payload)
+                }
+            })
+            .addCase(saveContact.rejected, (state) => {
                 state.loading = false
             })
     }

@@ -29,9 +29,9 @@ const Home = () => {
 
             {!loading && items.length > 0 && (
                 <ul className="list-group">
-                    {items.map((contact) => (
+                    {items.map((contact, index) => (
                         <li
-                            key={contact.id}
+                            key={contact.id || index}
                             className="list-group-item d-flex align-items-center"
                         >
                             <img
