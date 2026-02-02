@@ -1,0 +1,83 @@
+import {createAsyncThunk, createSlice, type PayloadAction} from "@reduxjs/toolkit";
+import axios from "axios";
+
+const BASE_URL = 'https://iliahomework70-default-rtdb.europe-west1.firebasedatabase.app';
+
+export interface Contact {
+    id: string
+    name: string
+    phone: string
+    email: string
+    photo: string
+}
+
+export interface ContactsState {
+    items: Contact[]
+    selectedContact: Contact | null
+    loading: boolean
+}
+
+const initialState: ContactsState = {
+    items: [],
+    selectedContact: null,
+    loading: false,
+}
+
+export const fetchContacts = createAsyncThunk<Contact[]>(
+    'contacts/fetchContacts',
+    async () => {
+        const response = await axios.get(`${BASE_URL}/contacts.json`)
+        if (!response.data) return []
+        return Object.keys(response.data).map((key) => ({
+            id: key,
+            ...response.data[key],
+        }))
+    }
+)
+
+export const fetchContactById = createAsyncThunk<Contact, string>(
+    'contacts/fetchContactById',
+    async (id) => {
+        const response = await axios.get(`${BASE_URL}/contacts/${id}.json`)
+        return {
+            id,
+            ...response.data,
+        }
+    }
+)
+
+const contactsSlice = createSlice({
+    name: 'contacts',
+    initialState,
+    reducers: {
+        clearSelectedContact: (state) => {
+            state.selectedContact = null
+        },
+    },
+    extraReducers: (builder) => {
+        builder
+            .addCase(fetchContacts.pending, (state) => {
+                state.loading = true
+            })
+            .addCase(fetchContacts.fulfilled, (state, action: PayloadAction<Contact[]>) => {
+                state.loading = false
+                state.items = action.payload
+            })
+            .addCase(fetchContacts.rejected, (state) => {
+                state.loading = false
+            })
+            .addCase(fetchContactById.pending, (state) => {
+                state.loading = true
+            })
+            .addCase(fetchContactById.fulfilled, (state, action: PayloadAction<Contact>) => {
+                state.loading = false
+                state.selectedContact = action.payload
+            })
+            .addCase(fetchContactById.rejected, (state) => {
+                state.loading = false
+            })
+    }
+})
+
+export const { clearSelectedContact } = contactsSlice.actions
+export const contactsReducer = contactsSlice.reducer
