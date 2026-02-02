@@ -59,6 +59,15 @@ export const saveContact = createAsyncThunk(
     }
 )
 
+export const deleteContact = createAsyncThunk(
+    'contacts/deleteContact',
+    async (id: string) => {
+        await axios.delete(`${BASE_URL}/contacts/${id}.json`);
+        return id;
+    }
+);
+
+
 const contactsSlice = createSlice({
     name: 'contacts',
     initialState,
@@ -104,7 +113,18 @@ const contactsSlice = createSlice({
             .addCase(saveContact.rejected, (state) => {
                 state.loading = false
             })
+            .addCase(deleteContact.pending, (state) => {
+                state.loading = true
+            })
+            .addCase(deleteContact.fulfilled, (state, action: PayloadAction<string>) => {
+                state.loading = false
+                state.items = state.items.filter(contact => contact.id !== action.payload)
+            })
+            .addCase(deleteContact.rejected, (state) => {
+                state.loading = false
+            })
     }
+
 })
 
 export const { clearSelectedContact } = contactsSlice.actions

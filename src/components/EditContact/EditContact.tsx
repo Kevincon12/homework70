@@ -22,6 +22,11 @@ const EditContact = () => {
     useEffect(() => {
         if (id) {
             dispatch(fetchContactById(id));
+        } else {
+            setName('');
+            setPhone('');
+            setEmail('');
+            setPhoto('');
         }
     }, [dispatch, id]);
 
